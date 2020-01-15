@@ -148,10 +148,10 @@ I was seeking to determine whether individuals with diabetes weighed more, on av
 
 
 ### Research Question (RQ) 3
-   
+    Does higher education level equate to higher income?
     
 ### Reason for Interest
-
+    It's always interesting to work with commonly discussed stats and confirm or refute those previous facts. In this case I wanted to see if income and education level were correlated
 ### Exploratory Data Analysis (EDA) for RQ3
 
 ```{r}
@@ -195,6 +195,9 @@ eduindf
 ```
 
 ### Narrative RQ3
+
+
+Per the other two research questions I grabbed the income2 and educa columns and removed any NA values. As one would those with mroe education tended to make more money. The percentages and plot reflect this information with a full 64 percent of those that went to college making more than 75k per year. Almost none of those who didn't complete highschool make more than 74k per year. Most of this information is in line with what one would expect.
 
 ```{r}
 

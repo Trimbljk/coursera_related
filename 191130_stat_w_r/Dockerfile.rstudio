@@ -1,7 +1,0 @@
-FROM rocker/rstudio:3.6.2
-
-USER root
-
-COPY Makefile /home/rstudio/
-
-#RUN R -e "install.packages('ggplot2')"
