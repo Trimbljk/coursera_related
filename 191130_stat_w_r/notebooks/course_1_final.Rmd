@@ -1,0 +1,204 @@
+---
+jupyter:
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+  language_info:
+    codemirror_mode: r
+    file_extension: .r
+    mimetype: text/x-r-source
+    name: R
+    pygments_lexer: r
+    version: 3.6.1
+  nbrmd_format_version: '1.0'
+---
+
+```{r}
+suppressMessages(library(ggplot2))
+suppressMessages(library(tidyverse))
+suppressMessages(library(dplyr))
+suppressMessages(library(reshape2))
+suppressMessages(library(data.table))
+```
+
+```{r}
+load("../data/brfss2013")
+df <- brfss2013
+```
+
+```{r}
+nrow(brfss2013)
+```
+
+### Data
+
+
+The BRFSS data is a random sample of adults 18 years or older from all US states and outlying territories. The survey questions are asked on a landline phone or cell phone from residential households where they select a random adult or from college housing. Cell phones are also used for contact purposes. The survey could potentially be a stratified sample (groups separated by college and non college housing) but it doesn't appear this is the case. This is not random assignment as no procedures are being performed to assign participants to control or experimental groups.
+
+
+### Research Question (RQ) 1
+    Does household income correlate with a decision to not seek medical attention when needed based on a respondents sex?
+    
+### Reason for Interest
+    I don't think I've seen a statistical analysis addressing this specific correlation, though I'm 
+    sure it has been done. I'm curious to see if there is a decision difference amongst the sexes, 
+    about medical care, regarding their financial situation.
+
+### Exploratory Data Analysis (EDA) for RQ1
+
+```{r}
+med <- (
+    
+    df %>%  
+    select(medcost, income2, sex) %>%
+    drop_na()
+    
+)
+```
+
+```{r}
+head(med)
+```
+
+```{r}
+ggplot(med, aes(x=income2, fill=medcost))+ geom_bar(position="fill") + 
+    coord_flip() + facet_wrap(~sex) + 
+    labs(title="Individual Decisions to Forego Medical Care Due to Cost by Sex",
+        x ="Income Bracket", y = "Decision %") + 
+    scale_fill_discrete(name = "medcost", labels = c("Did not to seek medical \nattention (cost)", "Sought medical attention"))
+```
+
+### Summary Statistics for RQ1
+
+```{r}
+new_df <- 
+(
+    med %>%  
+    group_by(medcost, income2, sex) %>% 
+    tally() %>%
+    spread(medcost, n) %>%
+    unite("income_by_sex", income2:sex) %>%
+    mutate(total=rowSums(select_if(., is.numeric)))
+)
+
+```
+
+```{r}
+pcts <- new_df %>% select(2:3)
+pcts <- pcts/rowSums(pcts)
+names(pcts) <- c("pct_cost_issue", "pct_cost_not_issue")
+final_df <- cbind(new_df, pcts)
+setnames(final_df, old=c("Yes","No"), new=c("count_cost_issue", "count_cost_not"))
+summary_df <-final_df[order(-final_df$pct_cost_issue),]
+summary_df
+```
+
+### Narrative RQ1
+
+
+To address the research question, I filtered the BRFSS2013 data by medcost, sex and income (specifically the income2 column). I grouped all the data by the column headers and counted the totals of each grouping (a total of 15 groups). Percentages were taken upon whether a group didn't seek medical attention when needed. The figure reflects the information in the summary statistics where regardless of sex, if individuals in that group make less than 10,000 dollars, more of them are likely to have responded yes, they DID NOT seek medical attention when needed. One could deduce from this information that it is likely due to the high cost of medical care. A larger percentage of income would have to be spend on getting care. A confounding variable to this data could be on the amount charged to the individual. If an individual making less than 10,000 dollars is charged significantly more than a person with an income in a different bracket then one could speculate they would be more likely to not seek healthcare and so then this wouldn't be reflected in the data. Income and medical decisions are not disjoint, however, they can potentially be dependent or independent hinging on the person making the decision.
+
+
+### Research Question (RQ) 2
+    Are individuals told they have diabetes heavier than the average according to their sex?
+    
+### Reason for Interest
+    I have always been told that this is the case. I wanted to see it for myself
+    
+### Exploratory Data Analysis (EDA) for RQ2
+
+```{r}
+diab <- 
+(
+    df %>% 
+    select(weight2, diabete3, sex) %>% 
+    drop_na() %>%
+    transform(weight2 = as.numeric(weight2)) %>%
+    filter(weight2 > 50)
+)
+```
+
+```{r}
+ggplot(diab, aes(x=reorder(diabete3, weight2, FUN=median), y=weight2)) + 
+    geom_point(alpha=0.3, color="coral2", position = "jitter") +
+    geom_boxplot() + 
+    facet_wrap(~sex) +
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
+    labs(x="Ever told had Diabetes", y="Weight in Pounds")
+
+```
+
+### Summary Statistics for RQ2
+
+```{r}
+final_diab <- diab %>% 
+        mutate(diab_sex = paste(sep="_", diabete3, sex)) %>% 
+        select(weight2, diab_sex) %>% group_by(diab_sex) %>%
+        summarise_all(list(mean, median, min, max, sd), na.rm = TRUE)
+setnames(final_diab, old=c("fn1","fn2", "fn3", "fn4", "fn5"), 
+         new=c("mean", "median", "min", "max", "sd"))
+final_diab
+```
+
+### Narrative RQ2
+
+
+I was seeking to determine whether individuals with diabetes weighed more, on average, than those who did not. I must admit this data was difficult to interpret. The data mentioned interviewing adults over 18 and yet there were some weight values at 0. After removing all the NA values, I selected all answers where the weight was above 50 pounds. I'm making an educated guess that most individuals over 18 will weight more than 50 pounds. As a maximum both the summary stats and figure show 570 as a max except for 'No, pre-diabetes or borderline diabetes_Males'. It seems like an arbitrary cutoff and I can't figure out why it's like that. Regardless, according to the summary stats, both males and females with diabetes weighed more, on average, than those who didn't ahve diabetes. There are, of course, outliers where very heavy individuals don't and lighter individuals do have diabetes. It would be interesting to break this data out further into type I and II diabetes to see if there is any correlation between weight and type.
+
+
+### Research Question (RQ) 3
+    Does higher education level equate to higher income?
+    
+### Reason for Interest
+    It's always interesting to work with commonly discussed stats and confirm or refute those previous facts. In this case I wanted to see if income and education level were correlated
+### Exploratory Data Analysis (EDA) for RQ3
+
+```{r}
+eduin <- df %>% select(income2, educa) %>% drop_na()
+```
+
+```{r}
+ggplot(eduin, aes(x=income2, fill=educa)) + 
+    geom_bar(stat='count') + coord_flip() +
+    theme(legend.position = c(0.65, 0.2)) +
+    labs(y="# of Respondents per Education Category", x="Income Level")
+```
+
+### Summary Statistics for RQ2
+
+```{r}
+testt <- 
+(
+    eduin %>% 
+    group_by(income2, educa) %>% 
+    tally() %>% 
+    spread(educa, n) %>% 
+    as.data.frame()
+)
+
+de <- testt$income2 %>% as.data.frame()
+
+test <- 
+(
+    testt %>% 
+    select(-income2) %>% 
+    mutate(total=rowSums(select_if(., is.numeric)))
+)
+
+pcts <- testt %>% 
+    select(-income2)
+pcts <- pcts/rowSums(pcts)
+
+eduindf <- cbind(de, test, pcts)
+eduindf
+```
+
+### Narrative RQ3
+
+
+Per the other two research questions I grabbed the income2 and educa columns and removed any NA values. As one would those with mroe education tended to make more money. The percentages and plot reflect this information with a full 64 percent of those that went to college making more than 75k per year. Almost none of those who didn't complete highschool make more than 74k per year. Most of this information is in line with what one would expect.
+
+```{r}
+
+```
