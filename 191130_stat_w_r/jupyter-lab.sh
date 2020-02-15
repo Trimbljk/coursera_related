@@ -16,7 +16,7 @@ done
 docker run \
     -e "NB_UID=$UID" --user root \
     -e "GRANT_SUDO=yes" \
-    -e BIOINFO_PROD_DB \
+    -e PROD_DB\
     -e DATA_DIR \
     --name stat_w_r_$(hostname)_$(id -u) \
     -w $PWD \

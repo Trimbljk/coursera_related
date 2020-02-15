@@ -1,1 +1,1 @@
-FROM jupyter/r-notebook:ad3574d3c5c7
+FROM jupyter/r-notebook:2fd856878b83

@@ -1,0 +1,73 @@
+1579368516596:library(statsr)
+1579368516602:library(dplyr)
+1579368516651:library(shiny)
+1579368516914:library(ggplot2)
+1579368673056:library(ggplot2)
+1579380879994:library(statrs)
+1579380890422:library(dplyr)
+1579383599883:library(statsr)
+1579383605733:library(ggplot2)
+1579383611661:library(dplyr)
+1579923050100:install_github("StatsWithR/statsr")
+1579923068254:library(dev_tools)
+1579923086112:library(devtools)
+1579923306334:set.seed(9102015)
+1579923374175:data(data/ames)
+1579923389243:data(ames)
+1579923399798:head(ames)
+1579923429767:n <- 60
+1579923429774:samp <- sample_n(ames, n)
+1579923435641:samp
+1579923574731:ggplot(ames, aes(x=area)) + geom_histogram()
+1579923596891:ggplot(ames, aes(x=area)) + geom_histogram(bins=100)
+1579923622433:ggplot(samp, aes(x=area)) + geom_histogram(bins=100)
+1579923631228:ggplot(samp, aes(x=area)) + geom_histogram(bins=30)
+1579923638596:ggplot(samp, aes(x=area)) + geom_histogram(bins=20)
+1579923659960:ggplot(samp, aes(x=area)) + geom_histogram(bins=10)
+1579923806787:z_star_95 <- qnorm(0.975)
+1579923831670:samp %>%
+1579923831677:summarise(lower = mean(area) - z_star_95 * (sd(area) / sqrt(n)),
+1579923831684:upper = mean(area) + z_star_95 * (sd(area) / sqrt(n)))
+1579924088849:params <- ames %>%
+1579924088856:summarise(mu = mean(area))
+1579924166973:ci <- ames %>%
+1579924166978:rep_sample_n(size = n, reps = 50, replace = TRUE) %>%
+1579924166981:summarise(lower = mean(area) - z_star_95 * (sd(area) / sqrt(n)),
+1579924166985:upper = mean(area) + z_star_95 * (sd(area) / sqrt(n)))
+1580261301596:qt(0.025, df=21)
+1581011196404:library(devtools)
+1581011196415:devtools::install_github("statswithr/statsr")
+1581011390113:load(data/nc)
+1581011395982:load(data/nc.rda)
+1581011404459:load("data/nc.rda")
+1581011410849:nc
+1581011418258:head(nc)
+1581011575883:#1 is birth
+1581011602336:str(nc)
+1581011799399:summary(nc$gained)
+1581011842098:#2 27
+1581011913872:ggplot(nc, aes(x=habit, y=weight)) + geom_boxplot()
+1581017702572:ggplot(nc, aes(x=weight)) + geom_histogram()
+1581017726911:ggplot(nc, aes(x=weight)) + geom_histogram() + facet_wrap(~habit)
+1581017799771:#3 right skewed is false
+1581017802649:nc %>%
+1581017802658:group_by(habit) %>%
+1581017802665:summarise(mean_weight = mean(weight))
+1581017892855:#4 answer b. smokers vs non-smokers are equal to each other
+1581017929014:inference(y = weight, x = habit, data = nc, statistic = "mean", type = "ht", null = 0,
+1581017929021:alternative = "twosided", method = "theoretical")
+1581018219258:library(devtools)
+1581018517688:#5 d
+1581565539674:load("data/atheism.rda")
+1581565559504:head(atheism)
+1581565687770:us12 <- atheism %>%
+1581565687776:filter(nationality == "United States" , atheism$year == "2012")
+1581565711182:us12
+1581565807112:us12 %>% group_by(response) %>% count()
+1581565932003:inference(y = response, data = us12, statistic = "proportion", type = "ci", method = "theoretical", success = "atheist")
+1581566107419:d <- data.frame(p <- seq(0, 1, 0.01))
+1581566107425:n <- 1000
+1581566107430:d <- d %>%
+1581566107434:mutate(me = 1.96*sqrt(p*(1 - p)/n))
+1581566107457:ggplot(d, aes(x = p, y = me)) +
+1581566107461:geom_line()
